@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  --color-primary: #f60d0d;
+}
+
+.text-primary {
+  color: var(--color-primary);
+}
+
+.bg-primary {
+  background-color: var(--color-primary);
+}
+
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+  @apply block w-full my-4 rounded-xl;
+  @apply border p-2 border-gray-300 bg-gray-100
+}
+
+input[type="email"]:disabled,
+input[type="password"]:disabled,
+input[type="text"]:disabled {
+  @apply bg-gray-300 cursor-not-allowed;
+}
+
+button[type="submit"]:disabled, .submit:disabled {
+  @apply cursor-not-allowed bg-red-400;
+}
