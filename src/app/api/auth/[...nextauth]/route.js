@@ -37,6 +37,7 @@ const handler = NextAuth({
       if (user) {
         token.role = user.role;  // add role from user to token
         token.name = user.name;  // add name from user to token
+        token.companyname = user.companyname;  // add companyname from user to token
       }
       return token;
     },
@@ -44,6 +45,7 @@ const handler = NextAuth({
       if (session.user) {
         session.user.role = token.role;  // add role from token to session
         session.user.name = token.name;  // add name from token to session
+        session.user.companyname = token.companyname;  // add companyname from token to session
       }
       return session;
     }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
 
 interface Product {
   _id: string;
@@ -46,6 +47,8 @@ export default function FamilyDetailPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [familyName, setFamilyName] = useState('');
+  const { data: session } = useSession();
+  const [downloading, setDownloading] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProducts() {
@@ -192,6 +195,96 @@ export default function FamilyDetailPage() {
 
   const specFields = getAllSpecFields();
 
+  const handleDownloadWithWatermark = async (product: Product) => {
+    if (!session?.user) {
+      alert('Please log in to download specifications');
+      return;
+    }
+
+    setDownloading(product._id);
+    
+    try {
+      // Get company name from user session
+      const companyName = (session.user as any).companyname || (session.user as any).company || session.user.name || 'Unknown Company';
+      
+      console.log('Downloading PDF:', {
+        pdfUrl: product.downloadUrl,
+        productName: product.name,
+        companyName: companyName
+      });
+      
+      // Call the watermark API
+      const response = await fetch('/api/watermark', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          pdfUrl: product.downloadUrl,
+          productName: product.name,
+          companyName: companyName
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to process watermark');
+      }
+
+      // Check if response is PDF (watermarked) or JSON (error)
+      const contentType = response.headers.get('content-type');
+      
+      if (contentType && contentType.includes('application/pdf')) {
+        // Get the PDF blob
+        const pdfBlob = await response.blob();
+        
+        // Create download link
+        const url = window.URL.createObjectURL(pdfBlob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${product.name}_${companyName}_specs.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up the URL
+        window.URL.revokeObjectURL(url);
+        
+        // Download completed silently - no alert needed
+      } else {
+        // Handle error response
+        const data = await response.json();
+        console.error('Watermark API error:', data);
+        throw new Error(data.error || 'Failed to process watermark');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      
+      // Offer fallback to download original PDF
+      const useOriginal = confirm(
+        `Watermarking failed: ${error instanceof Error ? error.message : 'Unknown error'}\n\nWould you like to download the original PDF without watermark?`
+      );
+      
+      if (useOriginal) {
+        try {
+          const link = document.createElement('a');
+          link.href = product.downloadUrl;
+          link.download = `${product.name}_specs.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          alert('Downloading original PDF without watermark.');
+        } catch (fallbackError) {
+          console.error('Fallback download error:', fallbackError);
+          alert('Failed to download specifications. Please try again.');
+        }
+      } else {
+        alert('Download cancelled.');
+      }
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -293,16 +386,27 @@ export default function FamilyDetailPage() {
                     <td key={product._id} className="px-6 py-4">
                       <div className="flex flex-col gap-2">
                         {product.downloadUrl && (
-                          <a
-                            href={product.downloadUrl}
-                            download
-                            className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                          <button
+                            onClick={() => handleDownloadWithWatermark(product)}
+                            disabled={downloading === product._id}
+                            className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
-                            Download Specs
-                            <svg className="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                            </svg>
-                          </a>
+                            {downloading === product._id ? (
+                              <>
+                                Processing...
+                                <svg className="ml-1 h-3 w-3 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                Download Specs
+                                <svg className="ml-1 h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
                         )}
                       </div>
                     </td>
