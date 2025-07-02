@@ -73,6 +73,138 @@ function getStatusColor(status: string) {
   }
 }
 
+// Shipment Details Modal
+function ShipmentDetailsModal({ 
+  isOpen, 
+  onClose, 
+  shipment 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  shipment: Shipment | null;
+}) {
+  if (!isOpen || !shipment) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Shipment Details</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Shipment Information</h4>
+              <div className="bg-gray-50 p-4 rounded-md space-y-2">
+                <div><span className="font-medium">PO Number:</span> {shipment.poNumber}</div>
+                <div><span className="font-medium">From:</span> {shipment.from}</div>
+                <div><span className="font-medium">To:</span> {shipment.to}</div>
+                <div><span className="font-medium">Status:</span> 
+                  <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(shipment.status)}`}>
+                    {shipment.status}
+                  </span>
+                </div>
+                <div><span className="font-medium">Created:</span> {new Date(shipment.createtimestamp).toLocaleString()}</div>
+                {shipment.updatetimestamp && (
+                  <div><span className="font-medium">Last Updated:</span> {new Date(shipment.updatetimestamp).toLocaleString()}</div>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Shipping Information</h4>
+              <div className="bg-gray-50 p-4 rounded-md space-y-2">
+                {shipment.invoice && <div><span className="font-medium">Invoice:</span> {shipment.invoice}</div>}
+                {shipment.carrier && <div><span className="font-medium">Carrier:</span> {shipment.carrier}</div>}
+                <div><span className="font-medium">Freight:</span> ${shipment.freight.toFixed(2)}</div>
+                <div><span className="font-medium">MPF/VAT:</span> ${shipment.mpf_vat.toFixed(2)}</div>
+                <div><span className="font-medium">Duties:</span> ${shipment.duties.toFixed(2)}</div>
+                <div><span className="font-medium">Incidental:</span> ${shipment.ttl_incidental.toFixed(2)}</div>
+                <div><span className="font-medium">Shipping Fee:</span> ${shipment.end_user_shipping_fee.toFixed(2)}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-gray-900 mb-2">Financial Summary</h4>
+            <div className="bg-gray-50 p-4 rounded-md space-y-2">
+              <div><span className="font-medium">Total Amount:</span> ${shipment.totalAmount.toFixed(2)}</div>
+              <div><span className="font-medium">Total Shipping Cost:</span> ${shipment.totalShippingCost.toFixed(2)}</div>
+              <div className="border-t pt-2">
+                <div className="font-bold text-lg">Grand Total: ${shipment.grandTotal.toFixed(2)}</div>
+              </div>
+            </div>
+            
+            {shipment.note && (
+              <div className="mt-4">
+                <h4 className="font-medium text-gray-900 mb-2">Notes</h4>
+                <div className="bg-gray-50 p-4 rounded-md">
+                  <p className="text-gray-700">{shipment.note}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div>
+          <h4 className="font-medium text-gray-900 mb-4">Inventory Items</h4>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Family</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Part Number</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Serial Number</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {shipment.inventory.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {item.name}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.sku}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.family}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.pn}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.sn || <span className="text-gray-400">N/A</span>}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.quantity}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      ${item.amount.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Delete Confirmation Modal
 function DeleteConfirmationModal({ 
   isOpen, 
@@ -167,6 +299,8 @@ export default function ShipmentsPage() {
   const [editingShipment, setEditingShipment] = useState<Shipment | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showInquiryHistory, setShowInquiryHistory] = useState(false);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
 
   useEffect(() => {
     fetchShipments();
@@ -294,6 +428,11 @@ export default function ShipmentsPage() {
     fetchShipments(); // Refresh the shipments list
   }
 
+  function handleViewDetails(shipment: Shipment) {
+    setSelectedShipment(shipment);
+    setDetailsModalOpen(true);
+  }
+
   async function handleFulfillInquiry(id: string) {
     setFulfillingInquiryId(id);
     try {
@@ -395,13 +534,18 @@ export default function ShipmentsPage() {
                   {shipment.to}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  <div className="max-w-xs">
-                    {shipment.inventory.map((item, index) => (
-                      <div key={index} className="text-xs">
-                        {item.name} (Qty: {item.quantity})
-                      </div>
-                    ))}
-                  </div>
+                  <button
+                    onClick={() => handleViewDetails(shipment)}
+                    className="text-left w-full hover:bg-blue-50 p-2 rounded transition-colors duration-150"
+                  >
+                    <div className="max-w-xs">
+                      {shipment.inventory.map((item, index) => (
+                        <div key={index} className="text-xs">
+                          {item.name} (Qty: {item.quantity})
+                        </div>
+                      ))}
+                    </div>
+                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   ${shipment.grandTotal.toFixed(2)}
@@ -727,6 +871,16 @@ export default function ShipmentsPage() {
             </div>
           )}
         </section>
+
+        {/* Shipment Details Modal */}
+        <ShipmentDetailsModal
+          isOpen={detailsModalOpen}
+          onClose={() => {
+            setDetailsModalOpen(false);
+            setSelectedShipment(null);
+          }}
+          shipment={selectedShipment}
+        />
 
         {/* Delete Confirmation Modal */}
         <DeleteConfirmationModal

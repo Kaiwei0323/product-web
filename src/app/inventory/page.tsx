@@ -778,7 +778,11 @@ function GroupedInventoryOverview({ onStockChange }: { onStockChange: () => void
                         <span className="font-semibold text-lg">{item.totalQuantity}</span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.hasSerialNumbers ? (
+                        {item.totalQuantity === 0 ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                            Empty
+                          </span>
+                        ) : item.hasSerialNumbers ? (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                             {item.serialNumbers.length} SN{item.serialNumbers.length !== 1 ? 's' : ''}
                           </span>
@@ -977,7 +981,7 @@ export default function InventoryPage() {
             onClick={() => setShowAddForm(!showAddForm)}
             className="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark"
           >
-            {showAddForm ? 'Hide Add Form' : 'Add Inventory'}
+            {showAddForm ? 'Hide Add Form' : 'Add Product Category'}
           </button>
         </div>
       </div>

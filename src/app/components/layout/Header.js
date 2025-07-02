@@ -53,7 +53,6 @@ export default function Header() {
       { href: "/shipments", label: "Shipments" }
     ] : []),
     { href: "/developer", label: "Developer" },
-    { href: "/about", label: "About" },
     ...(status === "authenticated" ? [
       { href: "/inquiry", label: "Inquiry" }
     ] : []),

@@ -38,7 +38,7 @@ export default function AddStockForm({ onStockAdded }: { onStockAdded: () => voi
         const data = await res.json();
         setError(data.error || "Failed to add inventory item");
       } else {
-        setSuccess("Product added! Now add quantity and serial numbers in the detail view.");
+        setSuccess("Product category added! Use 'View Details' to add items with serial numbers to this category.");
         setForm({ name: "", sku: "", family: "", pn: "", location: "ISV" });
         onStockAdded();
       }
@@ -51,7 +51,7 @@ export default function AddStockForm({ onStockAdded }: { onStockAdded: () => voi
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded-lg shadow max-w-lg mx-auto">
-      <h2 className="text-lg font-semibold mb-2">Add New Inventory Product</h2>
+      <h2 className="text-lg font-semibold mb-2">Add New Product Category</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium mb-1">Product Name</label>
@@ -114,7 +114,7 @@ export default function AddStockForm({ onStockAdded }: { onStockAdded: () => voi
         className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
         disabled={loading}
       >
-        {loading ? "Adding..." : "Add Product"}
+        {loading ? "Adding..." : "Add Category"}
       </button>
     </form>
   );

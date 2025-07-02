@@ -38,6 +38,7 @@ interface Product {
   tag: string;
   downloadUrl: string;
   imgUrl: string;
+  familyImgUrl: string;
 }
 
 export default function FamilyDetailPage() {

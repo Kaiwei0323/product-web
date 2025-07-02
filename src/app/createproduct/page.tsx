@@ -5,6 +5,7 @@ interface Product {
   _id: string;
   name?: string;
   imgUrl?: string;
+  familyImgUrl?: string;
   category?: string;
   sku?: string;
   pn?: string;
@@ -49,6 +50,7 @@ export default function CreateProductPage() {
 
   // Optional fields
   const [imgUrl, setImgUrl] = useState('');
+  const [familyImgUrl, setFamilyImgUrl] = useState('');
   const [processor, setProcessor] = useState('');
   const [platform, setPlatform] = useState('');
   const [tops, setTops] = useState('');
@@ -114,6 +116,7 @@ export default function CreateProductPage() {
       family,
       status,
       imgUrl,
+      familyImgUrl,
       processor,
       platform,
       tops: tops ? Number(tops) : undefined,
@@ -194,6 +197,7 @@ export default function CreateProductPage() {
     setFamily('');
     setStatus('enable');
     setImgUrl('');
+    setFamilyImgUrl('');
     setProcessor('');
     setPlatform('');
     setTops('');
@@ -233,6 +237,7 @@ export default function CreateProductPage() {
     setFamily(prod.family || '');
     setStatus(prod.status || 'enable');
     setImgUrl(prod.imgUrl || '');
+    setFamilyImgUrl(prod.familyImgUrl || '');
     setProcessor(prod.processor || '');
     setPlatform(prod.platform || '');
     setTops(prod.tops?.toString() || '');
@@ -334,6 +339,18 @@ export default function CreateProductPage() {
           {imgUrl && (
             <div className="w-full mt-2">
               <img src={imgUrl} alt="Preview" className="max-h-48 object-contain rounded mx-auto" />
+            </div>
+          )}
+        </div>
+
+        {/* Family Image */}
+        <div>
+          <h2 className="text-lg font-semibold mb-4">Family Image (Optional)</h2>
+          <p className="text-sm text-gray-600 mb-2">This image will be displayed on the product family page. If not provided, the product image will be used.</p>
+          <input type="text" placeholder="Family Image URL" value={familyImgUrl} disabled={creating} onChange={e => setFamilyImgUrl(e.target.value)} className="w-full border rounded-xl p-3" />
+          {familyImgUrl && (
+            <div className="w-full mt-2">
+              <img src={familyImgUrl} alt="Family Preview" className="max-h-48 object-contain rounded mx-auto" />
             </div>
           )}
         </div>

@@ -79,9 +79,8 @@ async function getInventory(req) {
         }
       });
       
-      // Convert to array, filter out items with totalQuantity <= 0, and sort by total quantity (descending)
+      // Convert to array, include all items (even with 0 quantity) and sort by total quantity (descending)
       const groupedArray = Object.values(groupedInventory)
-        .filter(item => item.totalQuantity > 0)
         .sort((a, b) => b.totalQuantity - a.totalQuantity);
       
       return Response.json(groupedArray);

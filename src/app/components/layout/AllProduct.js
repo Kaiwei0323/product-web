@@ -81,13 +81,22 @@ export default function AllProductMenu({ platform }) {
 
   // Create family objects with representative images and Best Seller info
   const familyData = uniqueFamilies.map(family => {
-    // Find the first product in this family to get its image and details
-    const representativeProduct = sortedProducts.find(product => product.family === family);
+    // Find all products in this family
+    const familyProducts = sortedProducts.filter(product => product.family === family);
+    const representativeProduct = familyProducts[0];
     const isBestSeller = representativeProduct?.tag && representativeProduct.tag.toLowerCase().includes('best seller');
+    
+    // Use familyImgUrl if available, otherwise use the first product's imgUrl
+    let familyImage = '/placeholder-product.jpg';
+    if (representativeProduct?.familyImgUrl) {
+      familyImage = representativeProduct.familyImgUrl;
+    } else if (representativeProduct?.imgUrl) {
+      familyImage = representativeProduct.imgUrl;
+    }
     
     return {
       name: family,
-      image: representativeProduct?.imgUrl || '/placeholder-product.jpg',
+      image: familyImage,
       platform: representativeProduct?.platform || 'N/A',
       processor: representativeProduct?.processor || 'N/A',
       tops: representativeProduct?.tops || 'N/A',
