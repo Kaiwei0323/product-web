@@ -106,7 +106,7 @@ export default function InquiryForm() {
       setCompany("");
       setContact("");
       setItems([{ productId: "", quantity: 1, family: "" }]);
-      setSuccess("Inquiry submitted successfully!");
+      setSuccess("Inquiry submitted successfully! You will receive a confirmation email shortly.");
       fetchInquiries();
     } catch (err: any) {
       setError(err.message || "Failed to submit inquiry. Please try again.");
