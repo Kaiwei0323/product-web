@@ -39,7 +39,6 @@ interface Product {
   tag: string;
   downloadUrl: string;
   imgUrl: string;
-  familyImgUrl: string;
 }
 
 export default function FamilyDetailPage() {
@@ -86,7 +85,7 @@ export default function FamilyDetailPage() {
     products.forEach(product => {
       Object.keys(product).forEach(key => {
         if (key !== '_id' && key !== 'name' && key !== 'sku' && key !== 'pn' && 
-            key !== 'family' && key !== 'imgUrl' && key !== 'downloadUrl' && 
+            key !== 'family' && key !== 'imgUrl' && key !== 'familyImgUrl' && key !== 'downloadUrl' && 
             key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
           fields.add(key);
         }

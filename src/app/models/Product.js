@@ -25,6 +25,9 @@ const ProductSchema = new mongoose.Schema({
   imgUrl: { 
     type: String 
   },
+  familyImgUrl: { 
+    type: String 
+  },
   processor: { 
     type: String 
   },
