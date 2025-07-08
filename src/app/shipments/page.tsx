@@ -59,7 +59,7 @@ function getStatusColor(status: string) {
     case 'requested':
       return 'bg-yellow-100 text-yellow-800';
     case 'processing':
-      return 'bg-blue-100 text-blue-800';
+      return 'bg-red-100 text-red-800';
     case 'in_transit':
       return 'bg-purple-100 text-purple-800';
     case 'delivered':
@@ -536,7 +536,7 @@ export default function ShipmentsPage() {
                 <td className="px-6 py-4 text-sm text-gray-500">
                   <button
                     onClick={() => handleViewDetails(shipment)}
-                    className="text-left w-full hover:bg-blue-50 p-2 rounded transition-colors duration-150"
+                    className="text-left w-full hover:bg-red-50 p-2 rounded transition-colors duration-150"
                   >
                     <div className="max-w-xs">
                       {shipment.inventory.map((item, index) => (
@@ -597,13 +597,7 @@ export default function ShipmentsPage() {
   );
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center">Loading shipments...</div>
-        </div>
-      </div>
-    );
+    return null; // Let the navigation loading handle the loading state
   }
 
   if (showForm) {
@@ -643,7 +637,7 @@ export default function ShipmentsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Shipments</h1>
             <button
               onClick={() => setShowForm(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
             >
               Create New Shipment
             </button>
@@ -708,7 +702,7 @@ export default function ShipmentsPage() {
                 onClick={() => setShowHistory(false)}
                 className={`px-4 py-2 text-sm font-medium rounded-md ${
                   !showHistory
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -718,7 +712,7 @@ export default function ShipmentsPage() {
                 onClick={() => setShowHistory(true)}
                 className={`px-4 py-2 text-sm font-medium rounded-md ${
                   showHistory
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -769,7 +763,7 @@ export default function ShipmentsPage() {
                 onClick={() => setShowInquiryHistory(false)}
                 className={`px-4 py-2 text-sm font-medium rounded-md ${
                   !showInquiryHistory
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -779,7 +773,7 @@ export default function ShipmentsPage() {
                 onClick={() => setShowInquiryHistory(true)}
                 className={`px-4 py-2 text-sm font-medium rounded-md ${
                   showInquiryHistory
-                    ? 'bg-blue-600 text-white'
+                    ? 'bg-red-600 text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >

@@ -28,3 +28,44 @@ input[type="text"]:disabled {
 button[type="submit"]:disabled, .submit:disabled {
   @apply cursor-not-allowed bg-red-400;
 }
+
+/* Custom animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out;
+}
+
+
+
+
+
+/* Smooth page transitions */
+.page-transition {
+  transition: opacity 0.3s ease-in-out;
+}
+
+.page-transition-enter {
+  opacity: 0;
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+}
+
+.page-transition-exit {
+  opacity: 1;
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+}

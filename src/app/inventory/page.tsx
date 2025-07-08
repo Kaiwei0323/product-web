@@ -822,12 +822,7 @@ function GroupedInventoryOverview({ onStockChange }: { onStockChange: () => void
   }
 
   if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading inventory data...</p>
-      </div>
-    );
+    return null; // Let the navigation loading handle the loading state
   }
 
   if (error) {

@@ -172,8 +172,14 @@ export default function FamilyDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 mb-4">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-red-600"></div>
+          </div>
+          <div className="text-xl font-semibold text-gray-700 mb-2">Loading Product Details</div>
+          <div className="text-sm text-gray-500">Please wait while we fetch the information...</div>
+        </div>
       </div>
     );
   }
@@ -201,6 +207,9 @@ export default function FamilyDetailPage() {
     }
 
     setDownloading(product._id);
+    
+    // Add a small delay to show the loading animation
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     try {
       // Get company name from user session
@@ -285,7 +294,7 @@ export default function FamilyDetailPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-gray-50 py-8 animate-fade-in">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
@@ -337,12 +346,16 @@ export default function FamilyDetailPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {specFields.map((field) => {
+                {specFields.map((field, index) => {
                   const isSame = isFieldSame(field);
                   const commonValue = getCommonValue(field);
                   
                   return (
-                    <tr key={field} className={isSame ? 'bg-green-50' : 'bg-white'}>
+                    <tr 
+                      key={field} 
+                      className={`${isSame ? 'bg-green-50' : 'bg-white'} animate-fade-in`}
+                      style={{ animationDelay: `${index * 0.1}s` }}
+                    >
                       <td className="px-6 py-4 text-sm font-medium text-gray-900 border-r" style={{ width: products.length === 1 ? '25%' : '20%' }}>
                         <div className="flex items-center">
                           <span className="capitalize">{formatFieldName(field)}</span>
@@ -388,7 +401,7 @@ export default function FamilyDetailPage() {
                           <button
                             onClick={() => handleDownloadWithWatermark(product)}
                             disabled={downloading === product._id}
-                            className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="inline-flex items-center justify-center px-3 py-2 border border-transparent text-xs font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
                           >
                             {downloading === product._id ? (
                               <>

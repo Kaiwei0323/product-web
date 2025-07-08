@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import ProductComparison from '../ProductComparison';
+import SimpleLoading from '../Loading';
 
 export default function AllProductMenu({ platform }) {
   const [products, setProducts] = useState([]);
@@ -142,7 +143,9 @@ export default function AllProductMenu({ platform }) {
             <h3 className="uppercase text-gray-600 font-semibold text-2xl italic mb-6">
               Our Products
             </h3>
-            <div className="text-gray-500">Loading products...</div>
+            <div className="flex justify-center">
+              <SimpleLoading size="md" />
+            </div>
           </div>
         </div>
       </section>
