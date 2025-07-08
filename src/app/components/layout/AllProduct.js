@@ -3,12 +3,15 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import ProductComparison from '../ProductComparison';
 
 export default function AllProductMenu({ platform }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [userRole, setUserRole] = useState('guest');
+  const [selectedProducts, setSelectedProducts] = useState([]);
+  const [showComparison, setShowComparison] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -60,6 +63,33 @@ export default function AllProductMenu({ platform }) {
   const handleFilterClick = (platform) => {
     const path = platform === 'All' ? '/product' : `/product/${platform}`;
     router.push(path);
+  };
+
+  const handleProductSelect = (product) => {
+    setSelectedProducts(prev => {
+      const isSelected = prev.find(p => p._id === product._id);
+      if (isSelected) {
+        return prev.filter(p => p._id !== product._id);
+      } else {
+        return [...prev, product];
+      }
+    });
+  };
+
+  const handleCompare = () => {
+    if (selectedProducts.length >= 2) {
+      setShowComparison(true);
+    } else {
+      alert('Please select at least 2 products to compare');
+    }
+  };
+
+  const closeComparison = () => {
+    setShowComparison(false);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedProducts([]);
   };
 
   const filteredProducts = platform
@@ -166,19 +196,35 @@ export default function AllProductMenu({ platform }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {familyData.map((family) => (
-              <div key={family.name} className="bg-white rounded-lg shadow-md overflow-hidden relative">
-                {/* Best Seller Badge */}
-                {family.isBestSeller && (
-                  <div className="absolute top-2 left-2 z-10">
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
-                      <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                      </svg>
-                      Best Seller
-                    </span>
-                  </div>
-                )}
+            {familyData.map((family) => {
+              // Find all products in this family for comparison
+              const familyProducts = sortedProducts.filter(product => product.family === family.name);
+              
+              return (
+                <div key={family.name} className="bg-white rounded-lg shadow-md overflow-hidden relative">
+                  {/* Best Seller Badge */}
+                  {family.isBestSeller && (
+                    <div className="absolute top-2 left-2 z-10">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 border border-yellow-200">
+                        <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        Best Seller
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Checkbox for comparison - Only show for admin and customer */}
+                  {(userRole === 'admin' || userRole === 'customer') && (
+                    <div className="absolute top-2 right-2 z-10">
+                      <input
+                        type="checkbox"
+                        className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                        onChange={() => handleProductSelect(familyProducts[0])}
+                        checked={selectedProducts.some(p => p._id === familyProducts[0]?._id)}
+                      />
+                    </div>
+                  )}
                 
                 <div className="h-full flex flex-col">
                   {/* Image container */}
@@ -241,10 +287,43 @@ export default function AllProductMenu({ platform }) {
                   </div>
                 </div>
               </div>
-            ))}
+            );
+            })}
+          </div>
+        )}
+        
+        {/* Compare and Deselect Buttons - Sticky position at bottom right */}
+        {(userRole === 'admin' || userRole === 'customer') && (
+          <div className="sticky bottom-4 right-4 flex justify-end gap-3 mt-8 mb-4 z-30">
+            {selectedProducts.length > 0 && (
+              <button
+                onClick={handleDeselectAll}
+                className="px-4 py-3 rounded-lg font-medium transition-colors shadow-lg bg-gray-500 text-white hover:bg-gray-600"
+              >
+                Deselect All
+              </button>
+            )}
+            <button
+              onClick={handleCompare}
+              disabled={selectedProducts.length < 2}
+              className={`px-6 py-3 rounded-lg font-medium transition-colors shadow-lg ${
+                selectedProducts.length >= 2
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
+            >
+              Compare ({selectedProducts.length} selected)
+            </button>
           </div>
         )}
       </div>
+      
+      {/* Product Comparison Modal */}
+      <ProductComparison
+        isOpen={showComparison}
+        onClose={closeComparison}
+        selectedProducts={selectedProducts}
+      />
     </section>
   );
 }

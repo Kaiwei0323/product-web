@@ -313,12 +313,12 @@ export default function FamilyDetailPage() {
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-900 border-b">
+                  <th className="px-6 py-4 text-left text-sm font-medium text-gray-900 border-b" style={{ width: products.length === 1 ? '25%' : '20%' }}>
                     Specification
                   </th>
                   {products.map((product) => (
-                    <th key={product._id} className="px-6 py-4 text-left text-sm font-medium text-gray-900 border-b min-w-[200px]">
-                      <div className="flex items-center space-x-3">
+                    <th key={product._id} className="px-6 py-4 text-left text-sm font-medium text-gray-900 border-b" style={{ width: products.length === 1 ? '75%' : `${80 / products.length}%` }}>
+                      <div className={`flex items-center space-x-3 ${products.length === 1 ? 'justify-center' : ''}`}>
                         {product.imgUrl && (
                           <img 
                             src={product.imgUrl} 
@@ -326,7 +326,7 @@ export default function FamilyDetailPage() {
                             className="w-12 h-12 object-contain"
                           />
                         )}
-                        <div>
+                        <div className={products.length === 1 ? 'text-center' : ''}>
                           <div className="font-semibold">{product.name}</div>
                           <div className="text-xs text-gray-500">SKU: {product.sku}</div>
                           <div className="text-xs text-gray-500">PN: {product.pn}</div>
@@ -343,7 +343,7 @@ export default function FamilyDetailPage() {
                   
                   return (
                     <tr key={field} className={isSame ? 'bg-green-50' : 'bg-white'}>
-                      <td className="px-6 py-4 text-sm font-medium text-gray-900 border-r">
+                      <td className="px-6 py-4 text-sm font-medium text-gray-900 border-r" style={{ width: products.length === 1 ? '25%' : '20%' }}>
                         <div className="flex items-center">
                           <span className="capitalize">{formatFieldName(field)}</span>
                           {isSame && (
@@ -360,8 +360,8 @@ export default function FamilyDetailPage() {
                         return (
                           <td key={product._id} className={`px-6 py-4 text-sm text-gray-900 ${
                             isDifferent ? 'bg-yellow-50 font-medium' : ''
-                          }`}>
-                            <div className="flex items-center justify-between">
+                          }`} style={{ width: products.length === 1 ? '75%' : `${80 / products.length}%` }}>
+                            <div className={`flex items-center ${products.length === 1 ? 'justify-center' : 'justify-between'}`}>
                               <span>{value || 'N/A'}</span>
                               {isDifferent && (
                                 <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
@@ -378,12 +378,12 @@ export default function FamilyDetailPage() {
                 
                 {/* Action Row */}
                 <tr className="bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900 border-r">
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900 border-r" style={{ width: products.length === 1 ? '25%' : '20%' }}>
                     Source
                   </td>
                   {products.map((product) => (
-                    <td key={product._id} className="px-6 py-4">
-                      <div className="flex flex-col gap-2">
+                    <td key={product._id} className="px-6 py-4" style={{ width: products.length === 1 ? '75%' : `${80 / products.length}%` }}>
+                      <div className={`flex flex-col gap-2 ${products.length === 1 ? 'items-center' : ''}`}>
                         {product.downloadUrl && (
                           <button
                             onClick={() => handleDownloadWithWatermark(product)}
