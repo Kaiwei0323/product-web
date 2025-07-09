@@ -39,6 +39,7 @@ interface Product {
   tag: string;
   downloadUrl: string;
   imgUrl: string;
+  removePortImgUrl: string;
 }
 
 export default function FamilyDetailPage() {
@@ -85,7 +86,8 @@ export default function FamilyDetailPage() {
     products.forEach(product => {
       Object.keys(product).forEach(key => {
         if (key !== '_id' && key !== 'name' && key !== 'sku' && key !== 'pn' && 
-            key !== 'family' && key !== 'imgUrl' && key !== 'familyImgUrl' && key !== 'downloadUrl' && 
+            key !== 'family' && key !== 'imgUrl' && key !== 'familyImgUrl' && 
+            key !== 'removePortImgUrl' && key !== 'downloadUrl' && 
             key !== 'createdAt' && key !== 'updatedAt' && key !== '__v') {
           fields.add(key);
         }
@@ -328,13 +330,21 @@ export default function FamilyDetailPage() {
                   {products.map((product) => (
                     <th key={product._id} className="px-6 py-4 text-left text-sm font-medium text-gray-900 border-b" style={{ width: products.length === 1 ? '75%' : `${80 / products.length}%` }}>
                       <div className={`flex items-center space-x-3 ${products.length === 1 ? 'justify-center' : ''}`}>
-                        {product.imgUrl && (
-                          <img 
-                            src={product.imgUrl} 
-                            alt={product.name}
-                            className="w-12 h-12 object-contain"
-                          />
-                        )}
+                        {(() => {
+                          // Determine which image to show based on user role
+                          let imageUrl = product.imgUrl;
+                          if ((session?.user as any)?.role !== 'customer' && (session?.user as any)?.role !== 'admin' && product.removePortImgUrl) {
+                            imageUrl = product.removePortImgUrl;
+                          }
+                          
+                          return imageUrl ? (
+                            <img 
+                              src={imageUrl} 
+                              alt={product.name}
+                              className="w-12 h-12 object-contain"
+                            />
+                          ) : null;
+                        })()}
                         <div className={products.length === 1 ? 'text-center' : ''}>
                           <div className="font-semibold">{product.name}</div>
                           <div className="text-xs text-gray-500">SKU: {product.sku}</div>

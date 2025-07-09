@@ -125,6 +125,11 @@ export default function AllProductMenu({ platform }) {
       familyImage = representativeProduct.imgUrl;
     }
     
+    // For users who are not customers or admins, use removePortImgUrl if available
+    if (userRole !== 'customer' && userRole !== 'admin' && representativeProduct?.removePortImgUrl) {
+      familyImage = representativeProduct.removePortImgUrl;
+    }
+    
     return {
       name: family,
       image: familyImage,

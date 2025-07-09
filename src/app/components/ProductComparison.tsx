@@ -37,6 +37,7 @@ interface Product {
   tag: string;
   downloadUrl: string;
   imgUrl: string;
+  removePortImgUrl: string;
 }
 
 interface ProductComparisonProps {
@@ -276,14 +277,24 @@ export default function ProductComparison({ isOpen, onClose, selectedProducts }:
                   return (
                     <th key={product._id} className="border border-gray-200 px-4 py-3 text-center font-semibold text-gray-900 min-w-[200px]">
                       <div className="flex flex-col items-center">
-                        <img 
-                          src={product.imgUrl || '/placeholder-product.jpg'} 
-                          alt={product.name}
-                          className="w-16 h-16 object-contain mb-2"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
-                          }}
-                        />
+                        {(() => {
+                          // Determine which image to show based on user role
+                          let imageUrl = product.imgUrl || '/placeholder-product.jpg';
+                          if ((session?.user as any)?.role !== 'customer' && (session?.user as any)?.role !== 'admin' && product.removePortImgUrl) {
+                            imageUrl = product.removePortImgUrl;
+                          }
+                          
+                          return (
+                            <img 
+                              src={imageUrl} 
+                              alt={product.name}
+                              className="w-16 h-16 object-contain mb-2"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
+                              }}
+                            />
+                          );
+                        })()}
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
                         <div className="text-xs text-gray-500 mb-2">{product.family}</div>
                         

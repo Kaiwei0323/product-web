@@ -73,6 +73,9 @@ const ProductSchema = new mongoose.Schema({
   cooling_fan: { 
     type: String 
   },
+  expansion_slots: { 
+    type: String 
+  },
   operating_temperature: { 
     type: String 
   },

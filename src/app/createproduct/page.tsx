@@ -6,6 +6,7 @@ interface Product {
   name?: string;
   imgUrl?: string;
   familyImgUrl?: string;
+  removePortImgUrl?: string;
   category?: string;
   sku?: string;
   pn?: string;
@@ -25,6 +26,7 @@ interface Product {
   hdmi?: string;
   power?: string;
   cooling_fan?: string;
+  expansion_slots?: string;
   operating_temperature?: string;
   mechanical_dimension?: string;
   weight?: string;
@@ -51,6 +53,7 @@ export default function CreateProductPage() {
   // Optional fields
   const [imgUrl, setImgUrl] = useState('');
   const [familyImgUrl, setFamilyImgUrl] = useState('');
+  const [removePortImgUrl, setRemovePortImgUrl] = useState('');
   const [processor, setProcessor] = useState('');
   const [platform, setPlatform] = useState('');
   const [tops, setTops] = useState('');
@@ -64,6 +67,7 @@ export default function CreateProductPage() {
   const [hdmi, setHdmi] = useState('');
   const [power, setPower] = useState('');
   const [cooling_fan, setCoolingFan] = useState('');
+  const [expansion_slots, setExpansionSlots] = useState('');
   const [operating_temperature, setOperatingTemperature] = useState('');
   const [mechanical_dimension, setMechanicalDimension] = useState('');
   const [weight, setWeight] = useState('');
@@ -117,6 +121,7 @@ export default function CreateProductPage() {
       status,
       imgUrl,
       familyImgUrl,
+      removePortImgUrl,
       processor,
       platform,
       tops: tops ? Number(tops) : undefined,
@@ -132,6 +137,7 @@ export default function CreateProductPage() {
       hdmi,
       power,
       cooling_fan: cooling_fan || '',
+      expansion_slots: expansion_slots || '',
       operating_temperature,
       mechanical_dimension,
       weight,
@@ -198,6 +204,7 @@ export default function CreateProductPage() {
     setStatus('enable');
     setImgUrl('');
     setFamilyImgUrl('');
+    setRemovePortImgUrl('');
     setProcessor('');
     setPlatform('');
     setTops('');
@@ -211,6 +218,7 @@ export default function CreateProductPage() {
     setHdmi('');
     setPower('');
     setCoolingFan('');
+    setExpansionSlots('');
     setOperatingTemperature('');
     setMechanicalDimension('');
     setWeight('');
@@ -238,6 +246,7 @@ export default function CreateProductPage() {
     setStatus(prod.status || 'enable');
     setImgUrl(prod.imgUrl || '');
     setFamilyImgUrl(prod.familyImgUrl || '');
+    setRemovePortImgUrl(prod.removePortImgUrl || '');
     setProcessor(prod.processor || '');
     setPlatform(prod.platform || '');
     setTops(prod.tops?.toString() || '');
@@ -251,6 +260,7 @@ export default function CreateProductPage() {
     setHdmi(prod.hdmi || '');
     setPower(prod.power || '');
     setCoolingFan(prod.cooling_fan || '');
+    setExpansionSlots(prod.expansion_slots || '');
     setOperatingTemperature(prod.operating_temperature || '');
     setMechanicalDimension(prod.mechanical_dimension || '');
     setWeight(prod.weight || '');
@@ -355,6 +365,18 @@ export default function CreateProductPage() {
           )}
         </div>
 
+        {/* Remove Port Image */}
+        <div>
+          <h2 className="text-lg font-semibold mb-4">Remove Port Image (Optional)</h2>
+          <p className="text-sm text-gray-600 mb-2">This image shows the product with ports removed for better visibility.</p>
+          <input type="text" placeholder="Remove Port Image URL" value={removePortImgUrl} disabled={creating} onChange={e => setRemovePortImgUrl(e.target.value)} className="w-full border rounded-xl p-3" />
+          {removePortImgUrl && (
+            <div className="w-full mt-2">
+              <img src={removePortImgUrl} alt="Remove Port Preview" className="max-h-48 object-contain rounded mx-auto" />
+            </div>
+          )}
+        </div>
+
         {/* Specifications */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h2 className="text-lg font-semibold mb-4">Specifications</h2>
@@ -382,6 +404,7 @@ export default function CreateProductPage() {
             <input type="text" placeholder="Camera" value={camera} disabled={creating} onChange={e => setCamera(e.target.value)} className="w-full border rounded-xl p-3" />
             <input type="text" placeholder="Battery" value={battery} disabled={creating} onChange={e => setBattery(e.target.value)} className="w-full border rounded-xl p-3" />
             <input type="text" placeholder="Cooling & Fan" value={cooling_fan} disabled={creating} onChange={e => setCoolingFan(e.target.value)} className="w-full border rounded-xl p-3" />
+            <input type="text" placeholder="Expansion Slots" value={expansion_slots} disabled={creating} onChange={e => setExpansionSlots(e.target.value)} className="w-full border rounded-xl p-3" />
             <input type="text" placeholder="Certification" value={certification} disabled={creating} onChange={e => setCertification(e.target.value)} className="w-full border rounded-xl p-3" />
             <input type="text" placeholder="Tag (e.g., Best Seller)" value={tag} disabled={creating} onChange={e => setTag(e.target.value)} className="w-full border rounded-xl p-3" />
             <input type="text" placeholder="Download URL" value={downloadUrl} disabled={creating} onChange={e => setDownloadUrl(e.target.value)} className="w-full border rounded-xl p-3" />
