@@ -208,9 +208,9 @@ async function updateShipment(req) {
     }
 
     // Validate status if provided
-    if (body.status && !['requested', 'processing', 'in_transit', 'delivered', 'complete', 'canceled'].includes(body.status)) {
+    if (body.status && !['requested', 'processing', 'in_transit', 'delivered', 'canceled'].includes(body.status)) {
       return Response.json(
-        { error: 'Valid status is required (requested, processing, in_transit, delivered, complete, or canceled)' },
+        { error: 'Valid status is required (requested, processing, in_transit, delivered, or canceled)' },
         { status: 400 }
       );
     }
@@ -248,25 +248,81 @@ async function updateShipment(req) {
       }
     }
 
-    // Update the shipment (for non-cancellation updates)
-    const updateData = { ...body };
-    delete updateData._id; // Remove _id if present
-    
-    const updatedShipment = await Shipment.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    ).populate('inventory.inventoryId', 'name sku family pn sn quantity location');
+    // Handle inventory changes if inventory is being updated
+    if (body.inventory && Array.isArray(body.inventory)) {
+      const session = await mongoose.startSession();
+      session.startTransaction();
 
-    if (!updatedShipment) {
-      return Response.json(
-        { error: 'Shipment not found' },
-        { status: 404 }
-      );
+      try {
+        // First, return all current items to inventory
+        for (const item of currentShipment.inventory) {
+          await Inventory.findByIdAndUpdate(
+            item.inventoryId,
+            { $inc: { quantity: item.quantity } },
+            { session }
+          );
+        }
+
+        // Then, deduct the new items from inventory
+        for (const item of body.inventory) {
+          const inventoryDoc = await Inventory.findById(item.inventoryId).session(session);
+          
+          if (!inventoryDoc) {
+            throw new Error(`Inventory not found for product: ${item.name} (SKU: ${item.sku})`);
+          }
+
+          if (inventoryDoc.quantity < item.quantity) {
+            throw new Error(`Insufficient inventory for product: ${item.name} (SKU: ${item.sku}). Available: ${inventoryDoc.quantity}, Requested: ${item.quantity}`);
+          }
+
+          // Update inventory quantity
+          await Inventory.findByIdAndUpdate(
+            item.inventoryId,
+            { $inc: { quantity: -item.quantity } },
+            { session }
+          );
+        }
+
+        // Update the shipment
+        const updateData = { ...body };
+        delete updateData._id; // Remove _id if present
+        
+        const updatedShipment = await Shipment.findByIdAndUpdate(
+          id,
+          updateData,
+          { new: true, session }
+        ).populate('inventory.inventoryId', 'name sku family pn sn quantity location');
+
+        await session.commitTransaction();
+        console.log('Updated shipment with inventory changes:', updatedShipment.toObject());
+        return Response.json(updatedShipment);
+      } catch (error) {
+        await session.abortTransaction();
+        throw error;
+      } finally {
+        session.endSession();
+      }
+    } else {
+      // Update the shipment without inventory changes
+      const updateData = { ...body };
+      delete updateData._id; // Remove _id if present
+      
+      const updatedShipment = await Shipment.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      ).populate('inventory.inventoryId', 'name sku family pn sn quantity location');
+
+      if (!updatedShipment) {
+        return Response.json(
+          { error: 'Shipment not found' },
+          { status: 404 }
+        );
+      }
+
+      console.log('Updated shipment:', updatedShipment.toObject());
+      return Response.json(updatedShipment);
     }
-
-    console.log('Updated shipment:', updatedShipment.toObject());
-    return Response.json(updatedShipment);
   } catch (error) {
     console.error('Error updating shipment:', error);
     return Response.json(

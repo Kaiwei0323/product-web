@@ -27,7 +27,7 @@ interface Shipment {
   duties: number;
   ttl_incidental: number;
   end_user_shipping_fee: number;
-  status: 'requested' | 'processing' | 'in_transit' | 'delivered' | 'complete' | 'canceled';
+  status: 'requested' | 'processing' | 'in_transit' | 'delivered' | 'canceled';
   note?: string;
   createtimestamp: string;
   updatetimestamp: string;
@@ -64,8 +64,6 @@ function getStatusColor(status: string) {
       return 'bg-purple-100 text-purple-800';
     case 'delivered':
       return 'bg-green-100 text-green-800';
-    case 'complete':
-      return 'bg-emerald-100 text-emerald-800';
     case 'canceled':
       return 'bg-red-100 text-red-800';
     default:
@@ -123,7 +121,7 @@ function ShipmentDetailsModal({
             <div>
               <h4 className="font-medium text-gray-900 mb-2">Shipping Information</h4>
               <div className="bg-gray-50 p-4 rounded-md space-y-2">
-                {shipment.invoice && <div><span className="font-medium">Invoice:</span> {shipment.invoice}</div>}
+                {shipment.invoice !== undefined && <div><span className="font-medium">Invoice:</span> {shipment.invoice}</div>}
                 {shipment.carrier && <div><span className="font-medium">Carrier:</span> {shipment.carrier}</div>}
                 <div><span className="font-medium">Freight:</span> ${shipment.freight.toFixed(2)}</div>
                 <div><span className="font-medium">MPF/VAT:</span> ${shipment.mpf_vat.toFixed(2)}</div>
@@ -193,6 +191,101 @@ function ShipmentDetailsModal({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
                       ${item.amount.toFixed(2)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Inquiry Details Modal
+function InquiryDetailsModal({ 
+  isOpen, 
+  onClose, 
+  inquiry 
+}: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  inquiry: Inquiry | null;
+}) {
+  if (!isOpen || !inquiry) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-xl font-semibold text-gray-900">Inquiry Details</h3>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-gray-600 focus:outline-none"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Inquiry Information</h4>
+              <div className="bg-gray-50 p-4 rounded-md space-y-2">
+                <div><span className="font-medium">Company:</span> {inquiry.company}</div>
+                <div><span className="font-medium">Contact:</span> {inquiry.contact}</div>
+                <div><span className="font-medium">Submitter:</span> {inquiry.submitter || 'N/A'}</div>
+                <div><span className="font-medium">Status:</span> 
+                  <span className={`ml-2 px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                    inquiry.status === 'requested' ? 'bg-yellow-100 text-yellow-800' :
+                    inquiry.status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                    'bg-green-100 text-green-800'
+                  }`}>
+                    {inquiry.status.charAt(0).toUpperCase() + inquiry.status.slice(1)}
+                  </span>
+                </div>
+                <div><span className="font-medium">Created:</span> {new Date(inquiry.createdAt).toLocaleString()}</div>
+                {inquiry.completedAt && (
+                  <div><span className="font-medium">Completed:</span> {new Date(inquiry.completedAt).toLocaleString()}</div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <h4 className="font-medium text-gray-900 mb-4">Requested Products</h4>
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product Name</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SKU</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chip</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Platform</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {inquiry.items.map((item, index) => (
+                  <tr key={index} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                      {typeof item.productId === 'object' ? item.productId.name : item.productId}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.sku || (typeof item.productId === 'object' ? item.productId.sku : '') || 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {typeof item.productId === 'object' ? item.productId.chip || 'N/A' : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {typeof item.productId === 'object' ? item.productId.platform || 'N/A' : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+                      {item.quantity}
                     </td>
                   </tr>
                 ))}
@@ -295,12 +388,15 @@ export default function ShipmentsPage() {
   const [deletingInquiryId, setDeletingInquiryId] = useState<string | null>(null);
   const [fulfillingInquiryId, setFulfillingInquiryId] = useState<string | null>(null);
   const [processingInquiryId, setProcessingInquiryId] = useState<string | null>(null);
+  const [updatingInquiryId, setUpdatingInquiryId] = useState<string | null>(null);
   const [inquirySearch, setInquirySearch] = useState('');
   const [editingShipment, setEditingShipment] = useState<Shipment | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [showInquiryHistory, setShowInquiryHistory] = useState(false);
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedShipment, setSelectedShipment] = useState<Shipment | null>(null);
+  const [inquiryDetailsModalOpen, setInquiryDetailsModalOpen] = useState(false);
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
 
   useEffect(() => {
     fetchShipments();
@@ -433,6 +529,11 @@ export default function ShipmentsPage() {
     setDetailsModalOpen(true);
   }
 
+  function handleViewInquiryDetails(inquiry: Inquiry) {
+    setSelectedInquiry(inquiry);
+    setInquiryDetailsModalOpen(true);
+  }
+
   async function handleFulfillInquiry(id: string) {
     setFulfillingInquiryId(id);
     try {
@@ -456,6 +557,32 @@ export default function ShipmentsPage() {
       // Optionally show error
     } finally {
       setProcessingInquiryId(null);
+    }
+  }
+
+  async function handleInquiryStatusUpdate(inquiryId: string, newStatus: string) {
+    setUpdatingInquiryId(inquiryId);
+    try {
+      const res = await fetch(`/api/inquiry?id=${inquiryId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (!res.ok) throw new Error('Failed to update inquiry status');
+      
+      setInquiries(inquiries.map(inq => 
+        inq._id === inquiryId 
+          ? { ...inq, status: newStatus as 'requested' | 'processing' | 'complete' }
+          : inq
+      ));
+    } catch (err) {
+      console.error('Error updating inquiry status:', err);
+      setError('Failed to update inquiry status');
+    } finally {
+      setUpdatingInquiryId(null);
     }
   }
 
@@ -493,11 +620,11 @@ export default function ShipmentsPage() {
 
   // Separate active shipments from history
   const activeShipments = filteredShipments.filter(shipment => 
-    !['canceled', 'complete'].includes(shipment.status)
+    !['canceled', 'delivered'].includes(shipment.status)
   );
   
   const historyShipments = filteredShipments.filter(shipment => 
-    ['canceled', 'complete'].includes(shipment.status)
+    ['canceled', 'delivered'].includes(shipment.status)
   );
 
   const currentShipments = showHistory ? historyShipments : activeShipments;
@@ -523,7 +650,11 @@ export default function ShipmentsPage() {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {shipments.map((shipment) => (
-              <tr key={shipment._id} className="hover:bg-gray-50">
+              <tr 
+                key={shipment._id} 
+                className="hover:bg-gray-50 cursor-pointer"
+                onClick={() => handleViewDetails(shipment)}
+              >
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                   {shipment.poNumber}
                 </td>
@@ -534,18 +665,13 @@ export default function ShipmentsPage() {
                   {shipment.to}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-500">
-                  <button
-                    onClick={() => handleViewDetails(shipment)}
-                    className="text-left w-full hover:bg-red-50 p-2 rounded transition-colors duration-150"
-                  >
-                    <div className="max-w-xs">
-                      {shipment.inventory.map((item, index) => (
-                        <div key={index} className="text-xs">
-                          {item.name} (Qty: {item.quantity})
-                        </div>
-                      ))}
-                    </div>
-                  </button>
+                  <div className="max-w-xs">
+                    {shipment.inventory.map((item, index) => (
+                      <div key={index} className="text-xs">
+                        {item.name} (Qty: {item.quantity})
+                      </div>
+                    ))}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   ${shipment.grandTotal.toFixed(2)}
@@ -553,15 +679,19 @@ export default function ShipmentsPage() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <select
                     value={shipment.status}
-                    onChange={(e) => handleStatusUpdate(shipment._id, e.target.value)}
-                    disabled={updatingId === shipment._id || ['complete', 'delivered', 'canceled'].includes(shipment.status)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      handleStatusUpdate(shipment._id, e.target.value);
+                    }}
+                    onMouseDown={(e) => e.stopPropagation()}
+                    onClick={(e) => e.stopPropagation()}
+                    disabled={updatingId === shipment._id || ['delivered', 'canceled'].includes(shipment.status)}
                     className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(shipment.status)} border-0 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     <option value="requested">Requested</option>
                     <option value="processing">Processing</option>
                     <option value="in_transit">In Transit</option>
                     <option value="delivered">Delivered</option>
-                    <option value="complete">Complete</option>
                     <option value="canceled">Canceled</option>
                   </select>
                 </td>
@@ -569,24 +699,30 @@ export default function ShipmentsPage() {
                   {new Date(shipment.createtimestamp).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  <div className="flex space-x-2">
-                    {shipment.status === 'requested' && (
-                      <button
-                        onClick={() => handleEditClick(shipment)}
-                        disabled={updatingId === shipment._id}
-                        className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
-                      >
-                        Edit
-                      </button>
-                    )}
+                  {!showHistory && (
                     <button
-                      onClick={() => handleDeleteClick(shipment)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditClick(shipment);
+                      }}
+                      disabled={updatingId === shipment._id}
+                      className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {showHistory && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClick(shipment);
+                      }}
                       disabled={updatingId === shipment._id}
                       className="text-red-600 hover:text-red-900 disabled:opacity-50"
                     >
                       Delete
                     </button>
-                  </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -668,7 +804,6 @@ export default function ShipmentsPage() {
                   <option value="processing">Processing</option>
                   <option value="in_transit">In Transit</option>
                   <option value="delivered">Delivered</option>
-                  <option value="complete">Complete</option>
                   <option value="canceled">Canceled</option>
                 </select>
               </div>
@@ -807,7 +942,11 @@ export default function ShipmentsPage() {
                   {currentInquiries.map((inq) => {
                     const status = inq.status || 'requested';
                     return (
-                      <tr key={inq._id}>
+                      <tr 
+                        key={inq._id} 
+                        className="hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleViewInquiryDetails(inq)}
+                      >
                         <td className="px-4 py-2 whitespace-nowrap">{inq.company}</td>
                         <td className="px-4 py-2 whitespace-nowrap">{inq.contact}</td>
                         <td className="px-4 py-2 whitespace-nowrap">{inq.submitter || '-'}</td>
@@ -823,34 +962,33 @@ export default function ShipmentsPage() {
                             ))}
                           </ul>
                         </td>
-                        <td className={
-                          status === 'requested' ? 'px-4 py-2 text-yellow-600 font-semibold' :
-                          status === 'processing' ? 'px-4 py-2 text-blue-600 font-semibold' :
-                          'px-4 py-2 text-green-600 font-semibold'
-                        }>
-                          {status.charAt(0).toUpperCase() + status.slice(1)}
+                        <td className="px-4 py-2 whitespace-nowrap">
+                          <select
+                            value={status}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              handleInquiryStatusUpdate(inq._id, e.target.value);
+                            }}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                            disabled={updatingInquiryId === inq._id || status === 'complete'}
+                            className={`px-2 py-1 text-xs font-semibold rounded-full border-0 focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+                              status === 'requested' ? 'bg-yellow-100 text-yellow-800' :
+                              status === 'processing' ? 'bg-blue-100 text-blue-800' :
+                              'bg-green-100 text-green-800'
+                            }`}
+                          >
+                            <option value="requested">Requested</option>
+                            <option value="processing">Processing</option>
+                            <option value="complete">Completed</option>
+                          </select>
                         </td>
                         <td className="px-4 py-2 whitespace-nowrap">
-                          {status === 'requested' && (
-                            <button
-                              onClick={() => handleProcessInquiry(inq._id)}
-                              disabled={processingInquiryId === inq._id}
-                              className="text-blue-600 hover:text-blue-900 disabled:opacity-50 mr-2"
-                            >
-                              {processingInquiryId === inq._id ? 'Processing...' : 'Mark Processing'}
-                            </button>
-                          )}
-                          {(status === 'requested' || status === 'processing') && (
-                            <button
-                              onClick={() => handleFulfillInquiry(inq._id)}
-                              disabled={fulfillingInquiryId === inq._id}
-                              className="text-green-600 hover:text-green-900 disabled:opacity-50 mr-2"
-                            >
-                              {fulfillingInquiryId === inq._id ? 'Completing...' : 'Mark Complete'}
-                            </button>
-                          )}
                           <button
-                            onClick={() => handleDeleteInquiry(inq._id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteInquiry(inq._id);
+                            }}
                             disabled={deletingInquiryId === inq._id}
                             className="text-red-600 hover:text-red-900 disabled:opacity-50"
                           >
@@ -874,6 +1012,16 @@ export default function ShipmentsPage() {
             setSelectedShipment(null);
           }}
           shipment={selectedShipment}
+        />
+
+        {/* Inquiry Details Modal */}
+        <InquiryDetailsModal
+          isOpen={inquiryDetailsModalOpen}
+          onClose={() => {
+            setInquiryDetailsModalOpen(false);
+            setSelectedInquiry(null);
+          }}
+          inquiry={selectedInquiry}
         />
 
         {/* Delete Confirmation Modal */}

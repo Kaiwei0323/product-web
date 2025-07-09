@@ -37,7 +37,7 @@ interface Shipment {
   duties: number;
   ttl_incidental: number;
   end_user_shipping_fee: number;
-  status: 'requested' | 'processing' | 'in_transit' | 'delivered' | 'complete' | 'canceled';
+  status: 'requested' | 'processing' | 'in_transit' | 'delivered' | 'canceled';
   note?: string;
   createtimestamp: string;
   updatetimestamp: string;
@@ -91,6 +91,7 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
   const [selectedInquiry, setSelectedInquiry] = useState<string>('');
   const [showInquiryReference, setShowInquiryReference] = useState(false);
+  const [showInventorySection, setShowInventorySection] = useState(false);
 
   // Initialize form with shipment data if editing
   useEffect(() => {
@@ -224,7 +225,7 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
 
   const handleAddItem = (item: InventoryItem) => {
     const existingItem = selectedItems.find(selected => {
-      const selectedId = typeof selected.inventoryId === 'string' ? selected.inventoryId : selected.inventoryId._id;
+      const selectedId = typeof selected.inventoryId === 'string' ? selected.inventoryId : (selected.inventoryId && typeof selected.inventoryId === 'object' && '_id' in selected.inventoryId ? selected.inventoryId._id : null);
       return selectedId === item._id;
     });
     
@@ -249,9 +250,9 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
   };
 
   const handleRemoveItem = (inventoryId: string | { _id: string; [key: string]: any }) => {
-    const idString = typeof inventoryId === 'string' ? inventoryId : inventoryId._id;
+    const idString = typeof inventoryId === 'string' ? inventoryId : (inventoryId && typeof inventoryId === 'object' && '_id' in inventoryId ? inventoryId._id : null);
     setSelectedItems(prev => prev.filter(item => {
-      const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : item.inventoryId._id;
+      const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : (item.inventoryId && typeof item.inventoryId === 'object' && '_id' in item.inventoryId ? item.inventoryId._id : null);
       return itemId !== idString;
     }));
   };
@@ -259,7 +260,7 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
   const handleItemQuantityChange = (inventoryId: string | { _id: string; [key: string]: any }, quantity: number) => {
     if (quantity < 1) return;
     
-    const idString = typeof inventoryId === 'string' ? inventoryId : inventoryId._id;
+    const idString = typeof inventoryId === 'string' ? inventoryId : (inventoryId && typeof inventoryId === 'object' && '_id' in inventoryId ? inventoryId._id : null);
     const inventoryItem = inventory.find(item => item._id === idString);
     if (inventoryItem && quantity > inventoryItem.quantity) {
       setError(`Quantity cannot exceed available inventory (${inventoryItem.quantity})`);
@@ -268,7 +269,7 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
 
     setSelectedItems(prev => 
       prev.map(item => {
-        const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : item.inventoryId._id;
+        const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : (item.inventoryId && typeof item.inventoryId === 'object' && '_id' in item.inventoryId ? item.inventoryId._id : null);
         return itemId === idString 
           ? { ...item, quantity } 
           : item;
@@ -280,10 +281,10 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
   const handleItemAmountChange = (inventoryId: string | { _id: string; [key: string]: any }, amount: number) => {
     if (amount < 0) return;
     
-    const idString = typeof inventoryId === 'string' ? inventoryId : inventoryId._id;
+    const idString = typeof inventoryId === 'string' ? inventoryId : (inventoryId && typeof inventoryId === 'object' && '_id' in inventoryId ? inventoryId._id : null);
     setSelectedItems(prev => 
       prev.map(item => {
-        const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : item.inventoryId._id;
+        const itemId = typeof item.inventoryId === 'string' ? item.inventoryId : (item.inventoryId && typeof item.inventoryId === 'object' && '_id' in item.inventoryId ? item.inventoryId._id : null);
         return itemId === idString 
           ? { ...item, amount } 
           : item;
@@ -292,10 +293,14 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
   };
 
   const filteredInventory = inventory.filter(item =>
-    // Filter out items that are already selected
+    // Filter out items that are already selected (by ID or by serial number)
     !selectedItems.some(selected => {
-      const selectedId = typeof selected.inventoryId === 'string' ? selected.inventoryId : selected.inventoryId._id;
-      return selectedId === item._id;
+      const selectedId = typeof selected.inventoryId === 'string' ? selected.inventoryId : (selected.inventoryId && typeof selected.inventoryId === 'object' && '_id' in selected.inventoryId ? selected.inventoryId._id : null);
+      // Check by ID first
+      if (selectedId === item._id) return true;
+      // Also check by serial number to prevent duplicate SNs
+      if (item.sn && item.sn.trim() !== '' && selected.sn === item.sn) return true;
+      return false;
     }) &&
     // Apply search filter
     (item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -540,8 +545,8 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
           </div>
         </div>
 
-        {/* Inventory Selection - Only show if not editing */}
-        {!isEditing && (
+        {/* Inventory Selection - Show when not editing or when explicitly requested */}
+        {(!isEditing || showInventorySection) && (
           <div className="border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-4">Select Inventory Items</h3>
             
@@ -633,51 +638,59 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
           </div>
         )}
 
-        {/* Selected Items */}
-        {selectedItems.length > 0 && (
+                {/* Selected Items */}
+        {(selectedItems.length > 0 || isEditing) && (
           <div className="border rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Selected Items</h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SN</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount ($)</th>
-                    {!isEditing && (
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Selected Items</h3>
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setShowInventorySection(!showInventorySection)}
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700"
+                >
+                  {showInventorySection ? 'Hide Inventory' : 'Add More Items'}
+                </button>
+              )}
+            </div>
+            {selectedItems.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Product</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SKU</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">SN</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                      <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Amount ($)</th>
                       <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">Action</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {selectedItems.map((item, index) => (
-                    <tr key={getItemKey(item, index)}>
-                      <td className="px-3 py-2 text-sm">{item.name}</td>
-                      <td className="px-3 py-2 text-sm font-mono">{item.sku}</td>
-                      <td className="px-3 py-2 text-sm font-mono">{item.sn || 'No SN'}</td>
-                      <td className="px-3 py-2 text-sm">
-                        <input
-                          type="number"
-                          min="1"
-                          value={item.quantity}
-                          onChange={(e) => handleItemQuantityChange(getInventoryIdString(item), parseInt(e.target.value) || 1)}
-                          className="w-20 px-2 py-1 border rounded text-sm"
-                          readOnly={isEditing}
-                        />
-                      </td>
-                      <td className="px-3 py-2 text-sm">
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={item.amount}
-                          onChange={(e) => handleItemAmountChange(getInventoryIdString(item), parseFloat(e.target.value) || 0)}
-                          className="w-24 px-2 py-1 border rounded text-sm"
-                        />
-                      </td>
-                      {!isEditing && (
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {selectedItems.map((item, index) => (
+                      <tr key={getItemKey(item, index)}>
+                        <td className="px-3 py-2 text-sm">{item.name}</td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.sku}</td>
+                        <td className="px-3 py-2 text-sm font-mono">{item.sn || 'No SN'}</td>
+                        <td className="px-3 py-2 text-sm">
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => handleItemQuantityChange(getInventoryIdString(item), parseInt(e.target.value) || 1)}
+                            className="w-20 px-2 py-1 border rounded text-sm"
+                          />
+                        </td>
+                        <td className="px-3 py-2 text-sm">
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={item.amount}
+                            onChange={(e) => handleItemAmountChange(getInventoryIdString(item), parseFloat(e.target.value) || 0)}
+                            className="w-24 px-2 py-1 border rounded text-sm"
+                          />
+                        </td>
                         <td className="px-3 py-2 text-sm">
                           <button
                             type="button"
@@ -687,12 +700,16 @@ export default function ShipmentForm({ onShipmentCreated, shipment, isEditing = 
                             Remove
                           </button>
                         </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No items selected. Use the "Add More Items" button to add items from inventory.
+              </div>
+            )}
           </div>
         )}
 

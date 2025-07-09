@@ -174,7 +174,7 @@ async function createInventory(req) {
       const shippedSNs = [];
       try {
         const activeShipments = await Shipment.find({
-          status: { $nin: ['canceled', 'complete'] }
+          status: { $nin: ['canceled', 'delivered'] }
         });
 
         for (const shipment of activeShipments) {
@@ -358,7 +358,7 @@ async function updateInventory(req) {
       let shippedItem = null;
       try {
         const activeShipments = await Shipment.find({
-          status: { $nin: ['canceled', 'complete'] }
+          status: { $nin: ['canceled', 'delivered'] }
         });
 
         for (const shipment of activeShipments) {

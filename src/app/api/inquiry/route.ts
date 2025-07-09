@@ -131,22 +131,48 @@ export async function PATCH(req: Request) {
     const { searchParams } = new URL(req.url!);
     const id = searchParams.get('id');
     const action = searchParams.get('action');
-    if (!id || (action !== 'fulfill' && action !== 'process')) {
-      return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Inquiry ID is required' }, { status: 400 });
     }
-    let newStatus = '';
-    if (action === 'fulfill') newStatus = 'complete';
-    if (action === 'process') newStatus = 'processing';
-    let updateFields: any = { status: newStatus };
-    if (action === 'fulfill') updateFields.completedAt = new Date();
+
+    let updateFields: any = {};
+
+    // Handle action-based updates (for backward compatibility)
+    if (action) {
+      if (action !== 'fulfill' && action !== 'process') {
+        return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+      }
+      let newStatus = '';
+      if (action === 'fulfill') newStatus = 'complete';
+      if (action === 'process') newStatus = 'processing';
+      updateFields.status = newStatus;
+      if (action === 'fulfill') updateFields.completedAt = new Date();
+    } else {
+      // Handle direct status updates from dropdown
+      const body = await req.json();
+      const { status } = body;
+      
+      if (!status || !['requested', 'processing', 'complete'].includes(status)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+      }
+      
+      updateFields.status = status;
+      if (status === 'complete') {
+        updateFields.completedAt = new Date();
+      }
+    }
+
     const inquiry = await Inquiry.findByIdAndUpdate(
       id,
       updateFields,
       { new: true }
     );
+    
     if (!inquiry) {
       return NextResponse.json({ error: 'Inquiry not found' }, { status: 404 });
     }
+    
     return NextResponse.json({ success: true, inquiry });
   } catch (err: any) {
     console.error('Inquiry PATCH error:', err);

@@ -120,7 +120,7 @@ const ShipmentSchema = new mongoose.Schema({
   status: {
     type: String,
     required: true,
-    enum: ['requested', 'processing', 'in_transit', 'delivered', 'complete', 'canceled'],
+    enum: ['requested', 'processing', 'in_transit', 'delivered', 'canceled'],
     default: 'requested',
     index: true, // Index for efficient status filtering
   },
