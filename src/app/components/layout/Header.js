@@ -65,7 +65,7 @@ export default function Header() {
         <div className="flex justify-between items-center h-16">
         <Link className="flex items-center space-x-2" href="/" aria-label="Inventec Home">
           <Image
-            src="/Inventec_Logo.jpg"
+            src="/logo.png"
             alt="Inventec Logo"
             width={200}
             height={200}

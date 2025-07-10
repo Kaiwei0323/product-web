@@ -28,6 +28,9 @@ const ProductSchema = new mongoose.Schema({
   familyImgUrl: { 
     type: String 
   },
+  removePortImgUrl: { 
+    type: String 
+  },
   processor: { 
     type: String 
   },

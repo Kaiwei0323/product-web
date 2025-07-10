@@ -1,3 +1,10 @@
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Inventec NA | Contact",
+  description: "Contact our sales team for AI edge solutions and industrial technology support",
+}
+
 export default function ContactPage() {
   return (
     <div className="p-10 bg-gradient-to-b from-white to-gray-100 min-h-screen">

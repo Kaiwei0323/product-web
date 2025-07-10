@@ -18,7 +18,7 @@ export default function HomeProduct() {
                     <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-200">
                         <ProductItem
                             name="Qualcomm QCS6490"
-                            image="/qc01.jpg"
+                            image="/QC-01_600X600.png"
                             description="High-performance Qualcomm 6490 processor for advanced mobile computing"
                             features={[
                                 "Octa-core CPU",
@@ -31,7 +31,7 @@ export default function HomeProduct() {
                     <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-200">
                         <ProductItem
                             name="NVIDIA Jetson"
-                            image="/psox.jpg"
+                            image="/Edge-NCOX_600x600.png"
                             description="Powerful NVIDIA Jetson platform for AI and robotics applications"
                             features={[
                                 "GPU-accelerated computing",

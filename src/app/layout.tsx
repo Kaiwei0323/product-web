@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Inventec - Industrial Solutions",
+  title: "Inventec NA | Industrial Solutions",
   description: "Leading provider of industrial solutions and technology",
 };
 

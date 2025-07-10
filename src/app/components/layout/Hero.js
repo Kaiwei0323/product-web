@@ -5,7 +5,7 @@ import Right from "../icons/Right";
 import Link from "next/link";
 
 export default function Hero() {
-  const images = ["/qc01.jpg", "/ncox.jpg", "/53r.jpg"];
+  const images = ["/QC-01_600X600.png", "/Edge-NCOX_600x600.png", "/53r.jpg"];
   const [current, setCurrent] = useState(0);
 
   // Handlers for arrow clicks

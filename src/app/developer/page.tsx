@@ -2,6 +2,12 @@
 
 import Link from 'next/link';
 import { FaCode, FaMicrochip, FaQuestionCircle } from 'react-icons/fa';
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Inventec NA | Developer Portal",
+  description: "Access development resources, documentation, and technical support for our AI edge platforms",
+}
 
 export default function DeveloperHomePage() {
   return (
