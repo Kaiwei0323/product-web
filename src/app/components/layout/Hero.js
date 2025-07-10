@@ -56,7 +56,7 @@ export default function Hero() {
             </div>
 
             {/* Hero Image Slideshow with clickable left/right halves */}
-            <div className="hidden lg:flex justify-center items-center relative w-[600px] h-[400px] mx-auto rounded-md overflow-hidden bg-transparent">
+            <div className="flex justify-center items-center relative w-full max-w-[600px] h-[300px] lg:h-[400px] mx-auto rounded-md overflow-hidden bg-transparent">
               <Image
                 key={current}
                 src={images[current]}
@@ -65,21 +65,62 @@ export default function Hero() {
                 height={400}
                 style={{ objectFit: "cover" }}
                 priority={true}
+                className="w-full h-full"
               />
 
               {/* Left clickable half for previous */}
               <div
                 onClick={prevImage}
                 aria-label="Previous Image"
-                className="absolute left-0 top-0 h-full w-1/2 cursor-pointer"
+                className="absolute left-0 top-0 h-full w-1/2 cursor-pointer z-10"
               />
 
               {/* Right clickable half for next */}
               <div
                 onClick={nextImage}
                 aria-label="Next Image"
-                className="absolute right-0 top-0 h-full w-1/2 cursor-pointer"
+                className="absolute right-0 top-0 h-full w-1/2 cursor-pointer z-10"
               />
+
+              {/* Left Arrow Indicator */}
+              <div 
+                onClick={prevImage}
+                className="absolute left-4 lg:left-6 top-1/2 transform -translate-y-1/2 w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 z-20 hover:bg-black hover:bg-opacity-30 group"
+              >
+                <svg 
+                  className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform duration-200" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={3} 
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </div>
+
+              {/* Right Arrow Indicator */}
+              <div 
+                onClick={nextImage}
+                className="absolute right-4 lg:right-6 top-1/2 transform -translate-y-1/2 w-14 h-14 lg:w-16 lg:h-16 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 z-20 hover:bg-black hover:bg-opacity-30 group"
+              >
+                <svg 
+                  className="w-7 h-7 lg:w-8 lg:h-8 text-white drop-shadow-lg group-hover:scale-110 transition-transform duration-200" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    strokeWidth={3} 
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </div>
             </div>
           </div>
         </div>
