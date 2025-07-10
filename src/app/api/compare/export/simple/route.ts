@@ -80,12 +80,13 @@ export async function POST(req: NextRequest) {
     
     console.log('Product headers added');
     
-    // Specifications - Match the exact format and order from compare section
+    // Specifications - Include all product schema fields in proper order
     const specFields = [
-      'category', 'platform', 'processor', 'ai_accelerator', 'tops', 'memory', 
-      'storage', 'os', 'wireless', 'bluetooth', 'ethernet', 'hdmi', 'power', 
-      'cooling_fan', 'operating_temperature', 'mechanical_dimension', 'weight', 
-      'di_do', 'display', 'audio', 'camera', 'battery', 'certification', 'tag'
+      'name', 'sku', 'pn', 'family', 'category', 'platform', 'processor', 
+      'ai_accelerator', 'tops', 'memory', 'storage', 'os', 'wireless', 
+      'bluetooth', 'I_O', 'button', 'ethernet', 'hdmi', 'power', 'cooling_fan', 
+      'expansion_slots', 'operating_temperature', 'mechanical_dimension', 'weight', 
+      'di_do', 'display', 'audio', 'camera', 'battery', 'certification', 'tag', 'status'
     ];
     
     // Field name mappings to match the compare section
@@ -97,7 +98,10 @@ export async function POST(req: NextRequest) {
       'ai_accelerator': 'AI Accelerator',
       'operating_temperature': 'Operating Temperature',
       'mechanical_dimension': 'Mechanical Dimension',
-      'cooling_fan': 'Cooling & Fan'
+      'cooling_fan': 'Cooling & Fan',
+      'expansion_slots': 'Expansion Slots',
+      'pn': 'Part Number',
+      'sku': 'SKU'
     };
     
     y = 550;
@@ -114,44 +118,44 @@ export async function POST(req: NextRequest) {
     const headerY = y;
     const headerHeight = 25;
     
+    // Calculate column widths based on number of products - evenly distributed
+    const tableX = 30; // Reduced left margin to use more space
+    const tableWidth = 535; // Increased total table width
+    const specColumnWidth = 200; // Increased width for specification column
+    const productCount = products.length;
+    const productColumnWidth = (tableWidth - specColumnWidth) / productCount;
+    
     // Header background
     page.drawRectangle({
-      x: 50,
+      x: tableX,
       y: headerY - 5,
-      width: 495,
+      width: tableWidth,
       height: headerHeight,
       color: rgb(0.1, 0.3, 0.6)
     });
     
     page.drawText('Specification', {
-      x: 60,
+      x: tableX + 10,
       y: headerY + 5,
       size: 12,
       font: boldFont,
       color: rgb(1, 1, 1)
     });
     
-    // Calculate column widths based on number of products - evenly distributed
-    const tableX = 50;
-    const tableWidth = 495; // total table width
-    const specColumnWidth = 180; // fixed width for specification column
-    const productCount = products.length;
-    const productColumnWidth = (tableWidth - specColumnWidth) / productCount;
-    
     // Draw product headers
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
       const x = tableX + specColumnWidth + (i * productColumnWidth);
-      // Truncate product name to fit column
+      // Allow longer product names with better truncation
       let productName = product.name || `Product ${i + 1}`;
-      const maxNameLength = Math.floor(productColumnWidth / 7);
+      const maxNameLength = Math.floor(productColumnWidth / 6); // Increased from 7 to 6 for more characters
       if (productName.length > maxNameLength) {
         productName = productName.substring(0, maxNameLength - 3) + '...';
       }
       page.drawText(productName, {
         x: x + 5,
         y: headerY + 5,
-        size: 12,
+        size: 11, // Slightly smaller font to fit more text
         font: boldFont,
         color: rgb(1, 1, 1)
       });
@@ -181,7 +185,7 @@ export async function POST(req: NextRequest) {
         currentPage.drawText('Specification', {
           x: tableX + 10,
           y: y + 5,
-          size: 12,
+          size: 11,
           font: boldFont,
           color: rgb(1, 1, 1)
         });
@@ -189,14 +193,14 @@ export async function POST(req: NextRequest) {
         for (let j = 0; j < products.length; j++) {
           const x = tableX + specColumnWidth + (j * productColumnWidth);
           let productName = products[j].name || `Product ${j + 1}`;
-          const maxNameLength = Math.floor(productColumnWidth / 7);
+          const maxNameLength = Math.floor(productColumnWidth / 6);
           if (productName.length > maxNameLength) {
             productName = productName.substring(0, maxNameLength - 3) + '...';
           }
           currentPage.drawText(productName, {
             x: x + 5,
             y: y + 5,
-            size: 12,
+            size: 11,
             font: boldFont,
             color: rgb(1, 1, 1)
           });
@@ -207,17 +211,67 @@ export async function POST(req: NextRequest) {
       // Field name with proper formatting to match compare section
       let fieldName = fieldMappings[field] || field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
       
-      // Alternating row background
-      const rowIndex = Math.floor((y - headerY + 30) / 20);
-      if (rowIndex % 2 === 0) {
-        currentPage.drawRectangle({
-          x: tableX,
-          y: y - 5,
-          width: tableWidth,
-          height: 20,
-          color: rgb(0.98, 0.98, 0.98)
-        });
+      // Calculate dynamic row height first
+      let maxRowHeight = 25; // Increased default row height
+      const fontSize = 9;
+      const lineHeight = fontSize + 4; // Increased line height for better spacing
+      
+      // Pre-calculate max row height for all products in this field
+      for (let j = 0; j < products.length; j++) {
+        const product = products[j];
+        const value = product[field];
+        let displayValue = 'N/A';
+        
+        if (value !== undefined && value !== null && value !== '') {
+          displayValue = String(value);
+        }
+        
+        const maxWidth = productColumnWidth - 10;
+        const words = displayValue.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+          
+          if (testWidth <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              lines.push(word.substring(0, Math.floor(maxWidth / (fontSize * 0.6)) - 3) + '...');
+              currentLine = '';
+            }
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        const cellHeight = Math.max(25, lines.length * lineHeight + 4); // Added extra padding
+        maxRowHeight = Math.max(maxRowHeight, cellHeight);
       }
+      
+      // Clean row styling with subtle borders
+      // Draw bottom border for each row to create clean separation
+      currentPage.drawLine({
+        start: { x: tableX, y: y - 7 },
+        end: { x: tableX + tableWidth, y: y - 7 },
+        thickness: 0.5,
+        color: rgb(0.9, 0.9, 0.9)
+      });
+      
+      // Draw vertical separator between specification and product columns
+      currentPage.drawLine({
+        start: { x: tableX + specColumnWidth, y: y - 7 },
+        end: { x: tableX + specColumnWidth, y: y - 7 + maxRowHeight },
+        thickness: 0.5,
+        color: rgb(0.9, 0.9, 0.9)
+      });
       
       currentPage.drawText(fieldName, {
         x: tableX + 10,
@@ -227,32 +281,62 @@ export async function POST(req: NextRequest) {
         color: rgb(0.2, 0.2, 0.2)
       });
       
-      // Product values in columns
+      // Product values in columns with dynamic height
       for (let j = 0; j < products.length; j++) {
         const product = products[j];
         const value = product[field];
         let displayValue = 'N/A';
         
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           // Convert to string and handle different types
           const stringValue = String(value);
-          // Adjust truncation based on column width
-          const maxLength = Math.floor(productColumnWidth / 5);
-          displayValue = stringValue.length > maxLength ? stringValue.substring(0, maxLength - 3) + '...' : stringValue;
+          displayValue = stringValue;
         }
         
         const x = tableX + specColumnWidth + (j * productColumnWidth);
         
-        currentPage.drawText(displayValue, {
-          x: x + 5,
-          y: y,
-          size: 10,
-          font,
-          color: rgb(0.2, 0.2, 0.2)
-        });
+        // Calculate text wrapping for this cell
+        const maxWidth = productColumnWidth - 10; // Leave some padding
+        const words = displayValue.split(' ');
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const word of words) {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+          
+          if (testWidth <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            if (currentLine) {
+              lines.push(currentLine);
+              currentLine = word;
+            } else {
+              // Single word is too long, truncate it
+              lines.push(word.substring(0, Math.floor(maxWidth / (fontSize * 0.6)) - 3) + '...');
+              currentLine = '';
+            }
+          }
+        }
+        
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        // Draw text lines with better spacing
+        for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+          const lineY = y - (lineIndex * lineHeight) - 2; // Added top padding
+          currentPage.drawText(lines[lineIndex], {
+            x: x + 5,
+            y: lineY,
+            size: fontSize,
+            font,
+            color: rgb(0.2, 0.2, 0.2)
+          });
+        }
       }
       
-      y -= 30; // More space between specification rows for better readability
+      y -= maxRowHeight + 8; // Increased spacing between rows to prevent overlap
     }
     
     console.log('Specifications added');
