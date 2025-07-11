@@ -61,7 +61,7 @@ export default function RootLayout({
                     </li>
                     <li>
                       <a href="/product/Intel" className="text-base text-gray-500 hover:text-gray-900">
-                        Intel + M.2 AI Acceleration Card
+                        Intel + AI Acceleration Card
                       </a>
                     </li>
                   </ul>
