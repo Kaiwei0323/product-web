@@ -22,7 +22,16 @@ const formatMessage = (message: VercelChatMessage) => {
     return `${message.role}: ${message.content}`;
 };
 
-const TEMPLATE = `Answer the user's questions based only on the following context. If the answer is not in the context, reply politely that you do not have that information available.:
+const TEMPLATE = `You are an AI assistant for an inventory and shipment management system. You have access to both inventory and shipment data. 
+
+Answer the user's questions based only on the following context. If the answer is not in the context, reply politely that you do not have that information available.
+
+You can help with:
+- Inventory queries (stock levels, product details, locations)
+- Shipment tracking and status
+- Data analysis and summaries
+- System management questions
+
 ==============================
 Context: {context}
 ==============================
@@ -39,18 +48,33 @@ export async function POST(req: Request) {
         const formattedPreviousMessages = messages.slice(0, -1).map(formatMessage);
         const currentMessageContent = messages[messages.length - 1].content;
 
-        // Fetch states from MongoDB
+        // Fetch inventory and shipment data from MongoDB
         const client = new MongoClient(process.env.MONGO_URL!);
         await client.connect();
         const db = client.db();
-        const collection = db.collection('inventories');
-        const docsRaw = await collection.find({}).toArray();
+        
+        // Fetch inventory data
+        const inventoryCollection = db.collection('inventories');
+        const inventoryDocsRaw = await inventoryCollection.find({}).toArray();
+        
+        // Fetch shipment data
+        const shipmentCollection = db.collection('shipments');
+        const shipmentDocsRaw = await shipmentCollection.find({}).toArray();
+        
         await client.close();
+        
         // Map to LangChain Document format
-        const docs = docsRaw.map((doc) => ({
-            pageContent: JSON.stringify(doc),
-            metadata: { ...doc }
+        const inventoryDocs = inventoryDocsRaw.map((doc) => ({
+            pageContent: `Inventory Item: ${JSON.stringify(doc)}`,
+            metadata: { ...doc, type: 'inventory' }
         }));
+        
+        const shipmentDocs = shipmentDocsRaw.map((doc) => ({
+            pageContent: `Shipment: ${JSON.stringify(doc)}`,
+            metadata: { ...doc, type: 'shipment' }
+        }));
+        
+        const docs = [...inventoryDocs, ...shipmentDocs];
 
         const prompt = PromptTemplate.fromTemplate(TEMPLATE);
 

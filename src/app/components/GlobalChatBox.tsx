@@ -1,17 +1,58 @@
 "use client";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { useSession } from "next-auth/react";
+
+// Animated loading component
+function AnimatedGenerating() {
+  const [dots, setDots] = useState(0);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => (prev + 1) % 4);
+    }, 500);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return (
+    <span className="inline-flex items-center">
+      Generating
+      <span className="ml-1">
+        {Array.from({ length: dots }, (_, i) => (
+          <span key={i} className="animate-pulse">.</span>
+        ))}
+      </span>
+    </span>
+  );
+}
 
 interface Message {
   role: "user" | "assistant";
   content: string;
 }
 
-export default function InventoryChatBox() {
+export default function GlobalChatBox() {
+  const { data: session, status } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if user is admin
+  const isAdmin = status === "authenticated" && session?.user?.role === "admin";
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages]);
+
+  // Don't render if not admin
+  if (!isAdmin) {
+    return null;
+  }
 
   const sendMessage = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -54,8 +95,8 @@ export default function InventoryChatBox() {
         <button
           onClick={() => setOpen(true)}
           className="w-14 h-14 rounded-full bg-blue-600 shadow-xl flex items-center justify-center hover:bg-blue-700 transition-colors focus:outline-none"
-          aria-label="Open chat"
-          title="Open chat"
+          aria-label="Open admin chat"
+          title="Open admin chat"
           type="button"
         >
           {/* Chat icon */}
@@ -72,7 +113,7 @@ export default function InventoryChatBox() {
             className="flex items-center justify-between px-4 py-2 rounded-t-lg bg-blue-600"
             style={{ borderTopLeftRadius: 12, borderTopRightRadius: 12 }}
           >
-            <span className="text-white font-semibold text-base">Inventory Chat</span>
+            <span className="text-white font-semibold text-base">Admin Chat</span>
             <button
               onClick={() => setOpen(false)}
               className="ml-auto flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 hover:bg-blue-700 transition-colors"
@@ -99,6 +140,11 @@ export default function InventoryChatBox() {
           >
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
+              {messages.length === 0 && (
+                <div className="text-center text-gray-500 text-sm py-4">
+                  Welcome! Ask me anything about inventory, shipments, or system management.
+                </div>
+              )}
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -114,6 +160,12 @@ export default function InventoryChatBox() {
                   <span>{msg.content}</span>
                 </div>
               ))}
+              {loading && (
+                <div className="mr-auto bg-gray-100 text-gray-800 rounded-lg px-3 py-2 text-sm shadow-sm">
+                  <span className="block font-semibold mb-1 text-xs text-gray-500">Assistant</span>
+                  <AnimatedGenerating />
+                </div>
+              )}
               <div ref={chatEndRef} />
             </div>
             {/* Input */}
@@ -125,7 +177,7 @@ export default function InventoryChatBox() {
                 className="flex-1 px-3 py-2 rounded border border-gray-300 focus:outline-none text-sm"
                 value={input}
                 onChange={e => setInput(e.target.value)}
-                placeholder="Ask about inventory..."
+                placeholder="Ask about inventory, shipments, or system..."
                 disabled={loading || !open}
               />
               <button

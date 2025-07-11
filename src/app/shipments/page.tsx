@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
 import ShipmentForm from '../components/ShipmentForm';
-import InventoryChatBox from '../components/InventoryChatBox';
 
 interface ShipmentInventoryItem {
   inventoryId: string;
@@ -1032,7 +1031,6 @@ export default function ShipmentsPage() {
           shipmentDetails={shipmentToDelete}
         />
       </div>
-      <InventoryChatBox />
     </div>
   );
 } 

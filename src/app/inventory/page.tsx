@@ -1,7 +1,6 @@
 'use client';
 import { useState, useEffect } from "react";
 import AddStockForm from "../components/AddStockForm";
-import InventoryChatBox from '../components/InventoryChatBox';
 
 interface StockItem {
   _id: string;
@@ -990,7 +989,6 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 gap-8">
         <GroupedInventoryOverview onStockChange={() => handleStockChange()} />
       </div>
-      <InventoryChatBox />
     </div>
   );
 } 
