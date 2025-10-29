@@ -26,6 +26,11 @@ export default function Header() {
     [status, session.data?.user?.role]
   );
 
+  const isCustomer = useMemo(() => 
+    status === "authenticated" && session.data?.user?.role === "customer",
+    [status, session.data?.user?.role]
+  );
+
   useEffect(() => {
     console.log("Session status:", status);
     console.log("Session data:", session.data);
@@ -52,12 +57,15 @@ export default function Header() {
       { href: "/inventory", label: "Inventory" },
       { href: "/shipments", label: "Shipments" }
     ] : []),
+    ...((isAdmin || isCustomer) ? [
+      { href: "/resource", label: "Resource" }
+    ] : []),
     { href: "/developer", label: "Developer" },
     ...(status === "authenticated" ? [
       { href: "/inquiry", label: "Inquiry" }
     ] : []),
     { href: "/contact", label: "Contact" },
-  ], [isAdmin, status]);
+  ], [isAdmin, isCustomer, status]);
 
   return (
     <header className="bg-white border-b">

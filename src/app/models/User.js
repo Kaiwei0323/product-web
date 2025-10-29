@@ -21,6 +21,8 @@ const UserSchema = new Schema({
   },
   name: { type: String, required: true },
   companyname: { type: String, required: true },
+  resetPasswordToken: { type: String },
+  resetPasswordExpires: { type: Date },
 }, { timestamps: true });
 
 UserSchema.post('validate', function (user) {
